@@ -3,7 +3,6 @@ DROP SCHEMA IF EXISTS fish_and_overfishing;
 CREATE SCHEMA fish_and_overfishing;
 USE fish_and_overfishing;
 
-
 -- Create aquaculture_farmed_fish_production Table
 DROP TABLE IF EXISTS aquaculture_farmed_fish_production;
 CREATE TABLE aquaculture_farmed_fish_production(
@@ -19,6 +18,11 @@ INTO TABLE aquaculture_farmed_fish_production
 FIELDS TERMINATED BY ',' 
 ENCLOSED BY '"' LINES TERMINATED BY '\n'
 IGNORE 1 ROWS;
+
+SET SQL_SAFE_UPDATES = 0;
+DELETE FROM aquaculture_farmed_fish_production
+WHERE Code = '' OR Code IS NULL OR Code = 'OWID_WRL';
+SET SQL_SAFE_UPDATES = 1;
 
 SELECT * 
 FROM aquaculture_farmed_fish_production 
@@ -42,6 +46,11 @@ FIELDS TERMINATED BY ','
 ENCLOSED BY '"' LINES TERMINATED BY '\n'
 IGNORE 1 ROWS;
 
+SET SQL_SAFE_UPDATES = 0;
+DELETE FROM capture_fishery_production
+WHERE Code = '' OR Code IS NULL OR Code = 'OWID_WRL';
+SET SQL_SAFE_UPDATES = 1;
+
 SELECT * 
 FROM capture_fishery_production 
 ORDER BY RAND() 
@@ -63,6 +72,11 @@ INTO TABLE fish_and_seafood_consumption_per_capita
 FIELDS TERMINATED BY ',' 
 ENCLOSED BY '"' LINES TERMINATED BY '\n'
 IGNORE 1 ROWS;
+
+SET SQL_SAFE_UPDATES = 0;
+DELETE FROM fish_and_seafood_consumption_per_capita
+WHERE Code = '' OR Code IS NULL OR Code = 'OWID_WRL';
+SET SQL_SAFE_UPDATES = 1;
 
 SELECT * 
 FROM fish_and_seafood_consumption_per_capita 
@@ -141,8 +155,34 @@ FIELDS TERMINATED BY ','
 ENCLOSED BY '"' LINES TERMINATED BY '\n'
 IGNORE 1 ROWS;
 
+SET SQL_SAFE_UPDATES = 0;
+DELETE FROM seafood_and_fish_production_thousand_tonnes
+WHERE Code = '' OR Code IS NULL OR Code = 'OWID_WRL';
+SET SQL_SAFE_UPDATES = 1;
+
 SELECT * 
 FROM seafood_and_fish_production_thousand_tonnes
+ORDER BY RAND() 
+LIMIT 10;
+
+
+-- Create seafood_and_fish_production_thousand_tonnes Table
+DROP TABLE IF EXISTS entity_codes_with_regions;
+CREATE TABLE entity_codes_with_regions(
+    Code VARCHAR(8) NOT NULL,
+    Entity VARCHAR(100) NOT NULL,
+    Region VARCHAR(100) NOT NULL,
+    PRIMARY KEY (Code)
+);
+    
+LOAD DATA LOCAL INFILE "MyLocalPath\\fish_and_overfishing\\entity_codes_with_regions.csv"
+INTO TABLE entity_codes_with_regions
+FIELDS TERMINATED BY ',' 
+ENCLOSED BY '"' LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+SELECT * 
+FROM entity_codes_with_regions
 ORDER BY RAND() 
 LIMIT 10;
 
@@ -241,6 +281,16 @@ FOREIGN KEY (entity_year_id) REFERENCES dim_entity_year(entity_year_id);
 SET SQL_SAFE_UPDATES = 1;
 
 
+-- Add a foreign key to seafood_and_fish_production_thousand_tonnes Table
+ALTER TABLE dim_entity_year
+ADD INDEX (Code);
+ALTER TABLE entity_codes_with_regions
+ADD CONSTRAINT ecwr_entity_year
+FOREIGN KEY (Code) REFERENCES dim_entity_year(Code);
+
+
 SELECT * FROM dim_entity_year ORDER BY RAND() LIMIT 10;
 
 SELECT * FROM fish_stocks_within_sustainable_levels ORDER BY RAND() LIMIT 10;
+
+SELECT * FROM entity_codes_with_regions ORDER BY RAND() LIMIT 10;
